@@ -22,31 +22,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#pragma once
-
-#include <string>
-#include <vector>
+#include "stdafx.h"
+#include "config.h"
 
 
-namespace util
+Config::Config(PCWSTR path)
 {
-  struct Address
-  {
-    unsigned char a;
-    unsigned char b;
-    unsigned char c;
-    unsigned char d;
-
-    std::wstring description;
-
-    std::wstring ToStr() const;
-  };
+}
 
 
-  typedef std::vector<Address> Addresses;
-
-
-  bool LoadStringResource(HINSTANCE hInstance, UINT uID, std::wstring& value);
-  bool GetAddresses(Addresses& value);
-  std::wstring GetConfigPath(const wchar_t* appName, const wchar_t* fileName);
+Config::~Config()
+{
 }

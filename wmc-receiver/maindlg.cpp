@@ -66,6 +66,8 @@ LRESULT CMainDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/,
 
   SetWindowTextW(appName.c_str());
 
+  std::wstring configPath = util::GetConfigPath(appName.c_str(), L"config.json");
+
   DoDataExchange(FALSE);
 
   util::Addresses addresses;

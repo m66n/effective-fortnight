@@ -24,29 +24,20 @@ SOFTWARE.
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include <boost/utility.hpp>
+#include <boost/property_tree/ptree.hpp>
 
 
-namespace util
+namespace pt = boost::property_tree;
+
+
+class Config : boost::noncopyable
 {
-  struct Address
-  {
-    unsigned char a;
-    unsigned char b;
-    unsigned char c;
-    unsigned char d;
+public:
+  explicit Config(PCWSTR path);
+  ~Config();
 
-    std::wstring description;
+private:
+  pt::ptree root_;
+};
 
-    std::wstring ToStr() const;
-  };
-
-
-  typedef std::vector<Address> Addresses;
-
-
-  bool LoadStringResource(HINSTANCE hInstance, UINT uID, std::wstring& value);
-  bool GetAddresses(Addresses& value);
-  std::wstring GetConfigPath(const wchar_t* appName, const wchar_t* fileName);
-}

@@ -27,6 +27,7 @@ SOFTWARE.
 #include <memory>
 
 #include "trayicon.h"
+#include "config.h"
 
 
 class CMainDlg : public CDialogImpl<CMainDlg>, public CUpdateUI<CMainDlg>,

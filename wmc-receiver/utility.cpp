@@ -30,6 +30,10 @@ SOFTWARE.
 #pragma comment(lib, "iphlpapi.lib")
 
 #include <sstream>
+#include <boost/filesystem.hpp>
+
+
+namespace fs = boost::filesystem;
 
 
 template <typename T>
@@ -56,6 +60,29 @@ public:
   operator T*() const { return reinterpret_cast<T*>(ptr_); }
 
   T* operator->() const { return reinterpret_cast<T*>(ptr_); }
+
+private:
+  void* ptr_;
+};
+
+
+template <typename T>
+class SafeCoTaskMemPtr {
+public:
+  SafeCoTaskMemPtr() : ptr_(nullptr) {}
+  ~SafeCoTaskMemPtr() { Free(); }
+
+  void Free()
+  {
+    if (ptr_) {
+      CoTaskMemFree(ptr_);
+      ptr_ = nullptr;
+    }
+  }
+
+  T* operator &() { return reinterpret_cast<T*>(&ptr_); }
+
+  operator T() const { return reinterpret_cast<T>(ptr_); }
 
 private:
   void* ptr_;
@@ -138,4 +165,25 @@ bool util::GetAddresses(Addresses& value)
   }
 
   return value.size() > 0;
+}
+
+
+std::wstring util::GetConfigPath(const wchar_t* appName, const wchar_t* fileName)
+{
+  SafeCoTaskMemPtr<PWSTR> folderPath;
+
+  if (SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &folderPath) == S_OK) {
+    fs::wpath configPath(folderPath);
+    configPath /= appName;
+    if (!fs::exists(configPath)) {
+      if (!fs::create_directory(configPath)) {
+        goto exit;
+      }
+    }
+    configPath /= fileName;
+    return configPath.c_str();
+  }
+
+exit:
+  return L"";
 }
