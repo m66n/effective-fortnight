@@ -123,7 +123,7 @@ bool util::GetAddresses(Addresses& value)
     while (unicast) {
       LPSOCKADDR sockaddr = unicast->Address.lpSockaddr;
       if (sockaddr->sa_family == AF_INET) {
-        PSOCKADDR_IN endpoint = reinterpret_cast<sockaddr_in*>(sockaddr);
+        PSOCKADDR_IN endpoint = reinterpret_cast<PSOCKADDR_IN>(sockaddr);
         Address endpointAddress;
         endpointAddress.a = endpoint->sin_addr.S_un.S_un_b.s_b1;
         endpointAddress.b = endpoint->sin_addr.S_un.S_un_b.s_b2;
