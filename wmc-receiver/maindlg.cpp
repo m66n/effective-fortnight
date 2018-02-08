@@ -47,6 +47,23 @@ BOOL CMainDlg::OnIdle()
 }
 
 
+int CMainDlg::GetInitialShowWindow(int nCmdShow)
+{
+  int value = nCmdShow;
+
+  if (config_.GetStartMinimized()) {
+    if (config_.GetMinimizeToTray()) {
+      value = SW_HIDE;
+    }
+    else {
+      value = SW_SHOWMINIMIZED;
+    }
+  }
+
+  return value;
+}
+
+
 LRESULT CMainDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/,
   LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
@@ -106,7 +123,13 @@ LRESULT CMainDlg::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/,
 LRESULT CMainDlg::OnClose(WORD /*wNotifyCode*/, WORD wID,
   HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-  CloseDialog(wID);
+  if (config_.GetCloseToTray()) {
+    ShowWindow(SW_HIDE);
+  }
+  else {
+    CloseDialog(wID);
+  }
+
   return 0;
 }
 
@@ -275,5 +298,40 @@ LRESULT CMainDlg::OnCloseTrayClicked(WORD wNotifyCode, WORD wID,
 {
   bool value = closeTrayBtn_.GetCheck() == BST_CHECKED;
   config_.PutCloseToTray(value, true);
+  return 0;
+}
+
+
+LRESULT CMainDlg::OnSysCommand(UINT /*uMsg*/, WPARAM wParam,
+  LPARAM /*lParam*/, BOOL& bHandled)
+{
+  bHandled = FALSE;
+
+  if (SC_MINIMIZE == wParam && config_.GetMinimizeToTray())
+  {
+    ShowWindow(SW_HIDE);
+    bHandled = TRUE;
+  }
+
+  return 0;
+}
+
+
+LRESULT CMainDlg::OnTrayIcon(UINT /*uMsg*/, WPARAM /*wParam*/,
+  LPARAM lParam, BOOL& /*bHandled*/)
+{
+  switch (LOWORD(lParam))
+  {
+  case WM_LBUTTONDOWN:
+    LONG style = GetWindowLong(GWL_STYLE);
+    if (!IsWindowVisible()) {
+      ShowWindow(SW_SHOW);
+    }
+    else if (style & WS_MINIMIZE) {
+      ShowWindow(SW_RESTORE);
+    }
+    break;
+  }
+
   return 0;
 }

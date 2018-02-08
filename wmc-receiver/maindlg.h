@@ -40,12 +40,16 @@ public:
   virtual BOOL PreTranslateMessage(MSG* pMsg);
   virtual BOOL OnIdle();
 
+  int GetInitialShowWindow(int nCmdShow);
+
   BEGIN_UPDATE_UI_MAP(CMainDlg)
   END_UPDATE_UI_MAP()
 
   BEGIN_MSG_MAP(CMainDlg)
     MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
     MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
+    MESSAGE_HANDLER(WM_SYSCOMMAND, OnSysCommand)
+    MESSAGE_HANDLER(RWM_TRAYICON, OnTrayIcon)
     COMMAND_ID_HANDLER(IDCANCEL, OnClose)
     COMMAND_ID_HANDLER(ID_EXIT, OnExit)
     COMMAND_HANDLER(IDC_NIC, CBN_SELCHANGE, OnNICChange)
@@ -86,6 +90,10 @@ private:
   LRESULT OnInitDialog(UINT uMsg, WPARAM wParam,
     LPARAM lParam, BOOL& bHandled);
   LRESULT OnDestroy(UINT uMsg, WPARAM wParam,
+    LPARAM lParam, BOOL& bHandled);
+  LRESULT OnSysCommand(UINT uMsg, WPARAM wParam,
+    LPARAM lParam, BOOL& bHandled);
+  LRESULT OnTrayIcon(UINT uMsg, WPARAM wParam,
     LPARAM lParam, BOOL& bHandled);
   LRESULT OnClose(WORD wNotifyCode, WORD wID,
     HWND hWndCtl, BOOL& bHandled);

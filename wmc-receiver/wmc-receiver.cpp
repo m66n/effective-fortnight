@@ -43,7 +43,7 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
     return 0;
   }
 
-  dlgMain.ShowWindow(nCmdShow);
+  dlgMain.ShowWindow(dlgMain.GetInitialShowWindow(nCmdShow));
 
   int nRet = theLoop.Run();
 
@@ -52,7 +52,8 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 }
 
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpstrCmdLine, int nCmdShow)
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/,
+  LPTSTR lpstrCmdLine, int nCmdShow)
 {
   HRESULT hRes = ::CoInitialize(NULL);
   ATLASSERT(SUCCEEDED(hRes));
