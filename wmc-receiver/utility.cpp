@@ -146,20 +146,24 @@ bool util::GetAddresses(Addresses& value)
   PIP_ADAPTER_ADDRESSES curr = addresses;
 
   while (curr) {
-    PIP_ADAPTER_UNICAST_ADDRESS unicast = curr->FirstUnicastAddress;
-    while (unicast) {
-      LPSOCKADDR sockaddr = unicast->Address.lpSockaddr;
-      if (sockaddr->sa_family == AF_INET) {
-        PSOCKADDR_IN endpoint = reinterpret_cast<PSOCKADDR_IN>(sockaddr);
-        Address endpointAddress;
-        endpointAddress.a = endpoint->sin_addr.S_un.S_un_b.s_b1;
-        endpointAddress.b = endpoint->sin_addr.S_un.S_un_b.s_b2;
-        endpointAddress.c = endpoint->sin_addr.S_un.S_un_b.s_b3;
-        endpointAddress.d = endpoint->sin_addr.S_un.S_un_b.s_b4;
-        endpointAddress.description = curr->Description;
-        value.push_back(endpointAddress);
+    bool valid = (curr->OperStatus == IfOperStatusUp) &&
+      (curr->IfType & IF_TYPE_ETHERNET_CSMACD);
+    if (valid) {
+      PIP_ADAPTER_UNICAST_ADDRESS unicast = curr->FirstUnicastAddress;
+      while (unicast) {
+        LPSOCKADDR sockaddr = unicast->Address.lpSockaddr;
+        if (sockaddr->sa_family == AF_INET) {
+          PSOCKADDR_IN endpoint = reinterpret_cast<PSOCKADDR_IN>(sockaddr);
+          Address endpointAddress;
+          endpointAddress.a = endpoint->sin_addr.S_un.S_un_b.s_b1;
+          endpointAddress.b = endpoint->sin_addr.S_un.S_un_b.s_b2;
+          endpointAddress.c = endpoint->sin_addr.S_un.S_un_b.s_b3;
+          endpointAddress.d = endpoint->sin_addr.S_un.S_un_b.s_b4;
+          endpointAddress.description = curr->Description;
+          value.push_back(endpointAddress);
+        }
+        unicast = unicast->Next;
       }
-      unicast = unicast->Next;
     }
     curr = curr->Next;
   }

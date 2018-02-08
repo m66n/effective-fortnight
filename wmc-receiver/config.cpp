@@ -25,12 +25,194 @@ SOFTWARE.
 #include "stdafx.h"
 #include "config.h"
 
+#include <boost/property_tree/json_parser.hpp>
+#include <fstream>
+#include <boost/filesystem.hpp>
 
-Config::Config(PCWSTR path)
-{
-}
+
+namespace fs = boost::filesystem;
+
+
+const wchar_t* KEY_NETWORK_INTERFACE = L"network interface";
+const wchar_t* KEY_PORT = L"port";
+const wchar_t* KEY_START_MINIMIZED = L"start minimized";
+const wchar_t* KEY_MINIMIZE_TO_TRAY = L"minimize to tray";
+const wchar_t* KEY_CLOSE_TO_TRAY = L"close to tray";
+
+
+Config::Config() : dirty_(false) {}
 
 
 Config::~Config()
 {
+  if (dirty_) {
+    Save();
+  }
+}
+
+
+bool Config::Load(const wchar_t* path)
+{
+  path_ = path;
+
+  std::wifstream f;
+  f.open(path_);
+
+  if (!f) {
+    dirty_ = true;
+    return false;
+  }
+
+  try {
+    pt::read_json(f, root_);
+    f.close();
+  }
+  catch (const pt::json_parser_error& /* e */) {
+    f.close();
+    fs::remove(path_);
+    dirty_ = true;
+    return false;
+  }
+
+  return true;
+}
+
+
+bool Config::Save()
+{
+  std::wofstream fs;
+  fs.open(path_);
+  if (fs) {
+    pt::write_json(fs, root_);
+    fs.close();
+    dirty_ = false;
+    return true;
+  }
+  return false;
+}
+
+
+std::wstring Config::GetNetworkInterface()
+{
+  std::wstring value;
+
+  try {
+    value = root_.get<std::wstring>(KEY_NETWORK_INTERFACE);
+  }
+  catch (const pt::ptree_error& /* e */) {
+    PutNetworkInterface(value.c_str());
+  }
+  
+  return value;
+}
+
+
+void Config::PutNetworkInterface(const wchar_t* value, bool save)
+{
+  root_.put(KEY_NETWORK_INTERFACE, value);
+  dirty_ = true;
+  if (save) { Save(); }
+}
+
+
+int Config::GetPort()
+{
+  int value = 29092;
+
+  try {
+    value = root_.get<int>(KEY_PORT);
+  }
+  catch (const pt::ptree_error& /* e */) {
+    PutPort(value);
+  }
+
+  return value;
+}
+
+
+void Config::PutPort(int value, bool save)
+{
+  root_.put(KEY_PORT, value);
+  dirty_ = true;
+  if (save) { Save(); }
+}
+
+
+bool Config::GetStartMinimized()
+{
+  int value = true;
+
+  try {
+    value = root_.get<bool>(KEY_START_MINIMIZED);
+  }
+  catch (const pt::ptree_error& /* e */) {
+    PutStartMinimized(value);
+  }
+
+  return value;
+}
+
+
+void Config::PutStartMinimized(bool value, bool save)
+{
+  root_.put(KEY_START_MINIMIZED, value);
+  dirty_ = true;
+  if (save) { Save(); }
+}
+
+
+bool Config::GetStartWithWindows()
+{
+  return false;
+}
+
+
+void Config::PutStartWithWindows(bool value)
+{
+}
+
+
+bool Config::GetMinimizeToTray()
+{
+  int value = true;
+
+  try {
+    value = root_.get<bool>(KEY_MINIMIZE_TO_TRAY);
+  }
+  catch (const pt::ptree_error& /* e */) {
+    PutMinimizeToTray(value);
+  }
+
+  return value;
+}
+
+
+void Config::PutMinimizeToTray(bool value, bool save)
+{
+  root_.put(KEY_MINIMIZE_TO_TRAY, value);
+  dirty_ = true;
+  if (save) { Save(); }
+}
+
+
+bool Config::GetCloseToTray()
+{
+  int value = false;
+
+  try {
+    value = root_.get<bool>(KEY_CLOSE_TO_TRAY);
+  }
+  catch (const pt::ptree_error& /* e */) {
+    PutCloseToTray(value);
+  }
+
+  return value;
+}
+
+
+void Config::PutCloseToTray(bool value, bool save)
+{
+  root_.put(KEY_CLOSE_TO_TRAY, value);
+  dirty_ = true;
+  if (save) { Save(); }
 }

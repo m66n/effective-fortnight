@@ -24,6 +24,7 @@ SOFTWARE.
 
 #pragma once
 
+#include <string>
 #include <boost/utility.hpp>
 #include <boost/property_tree/ptree.hpp>
 
@@ -34,10 +35,33 @@ namespace pt = boost::property_tree;
 class Config : boost::noncopyable
 {
 public:
-  explicit Config(PCWSTR path);
+  Config();
   ~Config();
 
+  bool Load(const wchar_t* path);
+  bool Save();
+
+  std::wstring GetNetworkInterface();
+  void PutNetworkInterface(const wchar_t* value, bool save = false);
+
+  int GetPort();
+  void PutPort(int value, bool save = false);
+
+  bool GetStartMinimized();
+  void PutStartMinimized(bool value, bool save = false);
+
+  bool GetStartWithWindows();
+  void PutStartWithWindows(bool value);
+
+  bool GetMinimizeToTray();
+  void PutMinimizeToTray(bool value, bool save = false);
+
+  bool GetCloseToTray();
+  void PutCloseToTray(bool value, bool save = false);
+
 private:
-  pt::ptree root_;
+  bool dirty_;
+  std::wstring path_;
+  pt::wptree root_;
 };
 

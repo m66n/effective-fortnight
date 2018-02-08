@@ -28,6 +28,7 @@ SOFTWARE.
 
 #include "trayicon.h"
 #include "config.h"
+#include "utility.h"
 
 
 class CMainDlg : public CDialogImpl<CMainDlg>, public CUpdateUI<CMainDlg>,
@@ -47,16 +48,40 @@ public:
     MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
     COMMAND_ID_HANDLER(IDCANCEL, OnClose)
     COMMAND_ID_HANDLER(ID_EXIT, OnExit)
+    COMMAND_HANDLER(IDC_NIC, CBN_SELCHANGE, OnNICChange)
+    COMMAND_HANDLER(IDC_PORT, EN_CHANGE, OnPortChange)
+    COMMAND_HANDLER(IDC_PORT, EN_KILLFOCUS, OnPortKillFocus)
+    COMMAND_HANDLER(IDC_STARTMIN, BN_CLICKED, OnStartMinClicked)
+    COMMAND_HANDLER(IDC_STARTWIN, BN_CLICKED, OnStartWinClicked)
+    COMMAND_HANDLER(IDC_MINTRAY, BN_CLICKED, OnMinTrayClicked)
+    COMMAND_HANDLER(IDC_CLOSETRAY, BN_CLICKED, OnCloseTrayClicked)
   END_MSG_MAP()
 
   BEGIN_DDX_MAP(CMainDlg)
     DDX_CONTROL_HANDLE(IDC_NIC, nicCombo_)
+    DDX_CONTROL_HANDLE(IDC_PORT, portEdit_)
+    DDX_CONTROL_HANDLE(IDC_LISTEN, listenBtn_)
+    DDX_CONTROL_HANDLE(IDC_STARTMIN, startMinBtn_)
+    DDX_CONTROL_HANDLE(IDC_STARTWIN, startWinBtn_)
+    DDX_CONTROL_HANDLE(IDC_MINTRAY, minTrayBtn_)
+    DDX_CONTROL_HANDLE(IDC_CLOSETRAY, closeTrayBtn_)
   END_DDX_MAP()
 
 private:
+  Config config_;
   std::unique_ptr<TrayIcon> trayIcon_;
 
+  util::Addresses addresses_;
   CComboBox nicCombo_;
+
+  CEdit portEdit_;
+
+  CButton listenBtn_;
+
+  CButton startMinBtn_;
+  CButton startWinBtn_;
+  CButton minTrayBtn_;
+  CButton closeTrayBtn_;
 
   LRESULT OnInitDialog(UINT uMsg, WPARAM wParam,
     LPARAM lParam, BOOL& bHandled);
@@ -65,6 +90,20 @@ private:
   LRESULT OnClose(WORD wNotifyCode, WORD wID,
     HWND hWndCtl, BOOL& bHandled);
   LRESULT OnExit(WORD wNotifyCode, WORD wID,
+    HWND hWndCtl, BOOL& bHandled);
+  LRESULT OnNICChange(WORD wNotifyCode, WORD wID,
+    HWND hWndCtl, BOOL& bHandled);
+  LRESULT OnPortChange(WORD wNotifyCode, WORD wID,
+    HWND hWndCtl, BOOL& bHandled);
+  LRESULT OnPortKillFocus(WORD wNotifyCode, WORD wID,
+    HWND hWndCtl, BOOL& bHandled);
+  LRESULT OnStartMinClicked(WORD wNotifyCode, WORD wID,
+    HWND hWndCtl, BOOL& bHandled);
+  LRESULT OnStartWinClicked(WORD wNotifyCode, WORD wID,
+    HWND hWndCtl, BOOL& bHandled);
+  LRESULT OnMinTrayClicked(WORD wNotifyCode, WORD wID,
+    HWND hWndCtl, BOOL& bHandled);
+  LRESULT OnCloseTrayClicked(WORD wNotifyCode, WORD wID,
     HWND hWndCtl, BOOL& bHandled);
 
   /* Handler prototypes:
@@ -77,4 +116,8 @@ private:
   */
 
   void CloseDialog(int nVal);
+
+  void InitNICCombo();
+  void InitPortEdit();
+  void InitCheckButtons();
 };

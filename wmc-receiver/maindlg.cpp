@@ -27,6 +27,12 @@ SOFTWARE.
 #include "maindlg.h"
 #include "utility.h"
 
+#include <sstream>
+
+
+const int MIN_PORT = 1024;
+const int MAX_PORT = 65535;
+
 
 BOOL CMainDlg::PreTranslateMessage(MSG* pMsg)
 {
@@ -66,16 +72,17 @@ LRESULT CMainDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/,
 
   SetWindowTextW(appName.c_str());
 
-  std::wstring configPath = util::GetConfigPath(appName.c_str(), L"config.json");
+  std::wstring configPath =
+    util::GetConfigPath(appName.c_str(), L"config.json");
+  config_.Load(configPath.c_str());
+
+  util::GetAddresses(addresses_);
 
   DoDataExchange(FALSE);
 
-  util::Addresses addresses;
-  util::GetAddresses(addresses);
-
-  for (auto const& a : addresses) {
-    nicCombo_.AddString(a.ToStr().c_str());
-  }
+  InitNICCombo();
+  InitPortEdit();
+  InitCheckButtons();
 
   trayIcon_.reset(new TrayIcon(IDR_MAINFRAME, appName.c_str()));
   trayIcon_->Attach(m_hWnd);
@@ -116,4 +123,157 @@ void CMainDlg::CloseDialog(int nVal)
 {
   DestroyWindow();
   ::PostQuitMessage(nVal);
+}
+
+
+LRESULT CMainDlg::OnNICChange(WORD /*wNotifyCode*/, WORD /*wID*/,
+  HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+  void* itemData = nicCombo_.GetItemDataPtr(nicCombo_.GetCurSel());
+
+  if (itemData != reinterpret_cast<void*>(-1)) {
+    util::Address* a = reinterpret_cast<util::Address*>(itemData);
+    config_.PutNetworkInterface(a->description.c_str(), true);
+  }
+
+  // todo: stop listening
+
+  return 0;
+}
+
+
+void CMainDlg::InitNICCombo()
+{
+  std::wstring networkInterface = config_.GetNetworkInterface();
+
+  int selectedIndex = -1;
+
+  for (auto& a : addresses_) {
+    int index = nicCombo_.AddString(a.ToStr().c_str());
+    nicCombo_.SetItemDataPtr(index, &a);
+    if (a.description == networkInterface) {
+      selectedIndex = index;
+    }
+  }
+
+  if (selectedIndex != -1) {
+    nicCombo_.SetCurSel(selectedIndex);
+  }
+  else {
+    void* itemData = nicCombo_.GetItemDataPtr(0);
+    if (itemData != reinterpret_cast<void*>(-1)) {
+      nicCombo_.SetCurSel(0);
+      util::Address* a = reinterpret_cast<util::Address*>(itemData);
+      config_.PutNetworkInterface(a->description.c_str(), true);
+    }
+  }
+}
+
+
+void CMainDlg::InitPortEdit()
+{
+  int port = config_.GetPort();
+  std::wstringstream ss;
+  ss << port;
+  portEdit_.SetWindowText(ss.str().c_str());
+}
+
+
+void CMainDlg::InitCheckButtons()
+{
+  bool startMin = config_.GetStartMinimized();
+  startMinBtn_.SetCheck(startMin ? BST_CHECKED : BST_UNCHECKED);
+
+  bool startWin = config_.GetStartWithWindows();
+  startWinBtn_.SetCheck(startWin ? BST_CHECKED : BST_UNCHECKED);
+
+  bool minTray = config_.GetMinimizeToTray();
+  minTrayBtn_.SetCheck(minTray ? BST_CHECKED : BST_UNCHECKED);
+
+  bool closeTray = config_.GetCloseToTray();
+  closeTrayBtn_.SetCheck(closeTray ? BST_CHECKED : BST_UNCHECKED);
+}
+
+
+LRESULT CMainDlg::OnPortChange(WORD wNotifyCode, WORD wID,
+  HWND hWndCtl, BOOL& bHandled)
+{
+  // todo: stop listening
+  return 0;
+}
+
+
+LRESULT CMainDlg::OnPortKillFocus(WORD wNotifyCode, WORD wID,
+  HWND hWndCtl, BOOL& bHandled)
+{
+  // add 1 for null termination
+  int textLength = portEdit_.GetWindowTextLengthW() + 1;
+  std::vector<wchar_t> buffer(textLength);
+  
+  portEdit_.GetWindowTextW(&buffer[0], textLength);
+
+  std::wstringstream ss(&buffer[0]);
+
+  int port = 0;
+  
+  ss >> port;
+
+  bool resetText = false;
+
+  if (port < MIN_PORT) {
+    port = MIN_PORT;
+    resetText = true;
+  }
+  else if (port > MAX_PORT) {
+    port = MAX_PORT;
+    resetText = true;
+  }
+
+  if (resetText) {
+    std::wstringstream ss;
+    ss << port;
+    portEdit_.SetWindowTextW(ss.str().c_str());
+  }
+
+  if (port != config_.GetPort()) {
+    config_.PutPort(port, true);
+  }
+
+  return 0;
+}
+
+
+LRESULT CMainDlg::OnStartMinClicked(WORD wNotifyCode, WORD wID,
+  HWND hWndCtl, BOOL& bHandled)
+{
+  bool value = startMinBtn_.GetCheck() == BST_CHECKED;
+  config_.PutStartMinimized(value, true);
+  return 0;
+}
+
+
+LRESULT CMainDlg::OnStartWinClicked(WORD wNotifyCode, WORD wID,
+  HWND hWndCtl, BOOL& bHandled)
+{
+  bool value = startWinBtn_.GetCheck() == BST_CHECKED;
+  config_.PutStartWithWindows(value);
+  return 0;
+}
+
+
+LRESULT CMainDlg::OnMinTrayClicked(WORD wNotifyCode, WORD wID,
+  HWND hWndCtl, BOOL& bHandled)
+{
+  bool value = minTrayBtn_.GetCheck() == BST_CHECKED;
+  config_.PutMinimizeToTray(value, true);
+  return 0;
+}
+
+
+LRESULT CMainDlg::OnCloseTrayClicked(WORD wNotifyCode, WORD wID,
+  HWND hWndCtl, BOOL& bHandled)
+{
+  bool value = closeTrayBtn_.GetCheck() == BST_CHECKED;
+  config_.PutCloseToTray(value, true);
+  return 0;
 }
