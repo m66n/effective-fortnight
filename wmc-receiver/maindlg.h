@@ -72,6 +72,7 @@ public:
   END_DDX_MAP()
 
 private:
+  std::wstring appName_;
   Config config_;
   std::unique_ptr<TrayIcon> trayIcon_;
 
@@ -128,4 +129,6 @@ private:
   void InitNICCombo();
   void InitPortEdit();
   void InitCheckButtons();
+
+  std::wstring GetAppPath();
 };

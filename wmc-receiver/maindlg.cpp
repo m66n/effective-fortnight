@@ -84,13 +84,12 @@ LRESULT CMainDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/,
 
   UIAddChildWindowContainer(m_hWnd);
 
-  std::wstring appName;
-  util::LoadStringResource(GetModuleHandle(NULL), IDS_APPNAME, appName);
+  util::LoadStringResource(GetModuleHandle(NULL), IDS_APPNAME, appName_);
 
-  SetWindowTextW(appName.c_str());
+  SetWindowTextW(appName_.c_str());
 
   std::wstring configPath =
-    util::GetConfigPath(appName.c_str(), L"config.json");
+    util::GetConfigPath(appName_.c_str(), L"config.json");
   config_.Load(configPath.c_str());
 
   util::GetAddresses(addresses_);
@@ -101,7 +100,7 @@ LRESULT CMainDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/,
   InitPortEdit();
   InitCheckButtons();
 
-  trayIcon_.reset(new TrayIcon(IDR_MAINFRAME, appName.c_str()));
+  trayIcon_.reset(new TrayIcon(IDR_MAINFRAME, appName_.c_str()));
   trayIcon_->Attach(m_hWnd);
 
   return TRUE;
@@ -207,7 +206,7 @@ void CMainDlg::InitCheckButtons()
   bool startMin = config_.GetStartMinimized();
   startMinBtn_.SetCheck(startMin ? BST_CHECKED : BST_UNCHECKED);
 
-  bool startWin = config_.GetStartWithWindows();
+  bool startWin = config_.GetStartWithWindows(appName_.c_str());
   startWinBtn_.SetCheck(startWin ? BST_CHECKED : BST_UNCHECKED);
 
   bool minTray = config_.GetMinimizeToTray();
@@ -279,7 +278,8 @@ LRESULT CMainDlg::OnStartWinClicked(WORD wNotifyCode, WORD wID,
   HWND hWndCtl, BOOL& bHandled)
 {
   bool value = startWinBtn_.GetCheck() == BST_CHECKED;
-  config_.PutStartWithWindows(value);
+  config_.PutStartWithWindows(appName_.c_str(),
+    value ? GetAppPath().c_str() : nullptr);
   return 0;
 }
 
@@ -334,4 +334,19 @@ LRESULT CMainDlg::OnTrayIcon(UINT /*uMsg*/, WPARAM /*wParam*/,
   }
 
   return 0;
+}
+
+
+std::wstring CMainDlg::GetAppPath()
+{
+  DWORD bufferSize = MAX_PATH + 1;
+  std::vector<wchar_t> buffer(bufferSize);
+  while (!GetModuleFileNameW(NULL, &buffer[0], bufferSize)) {
+    if (bufferSize > 0x7fff) {
+      return L"";
+    }
+    bufferSize *= 2;
+    buffer.resize(bufferSize);
+  }
+  return &buffer[0];
 }

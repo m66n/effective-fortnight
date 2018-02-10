@@ -50,8 +50,9 @@ public:
   bool GetStartMinimized();
   void PutStartMinimized(bool value, bool save = false);
 
-  bool GetStartWithWindows();
-  void PutStartWithWindows(bool value);
+  bool GetStartWithWindows(const wchar_t* appName);
+  // pass null appPath to clear setting
+  void PutStartWithWindows(const wchar_t* appName, const wchar_t* appPath);
 
   bool GetMinimizeToTray();
   void PutMinimizeToTray(bool value, bool save = false);
@@ -63,5 +64,7 @@ private:
   bool dirty_;
   std::wstring path_;
   pt::wptree root_;
+
+  static std::wstring GetRegPathString(CRegKey& key, const wchar_t* queryValue);
 };
 

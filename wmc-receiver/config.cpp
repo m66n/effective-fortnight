@@ -39,6 +39,9 @@ const wchar_t* KEY_START_MINIMIZED = L"start minimized";
 const wchar_t* KEY_MINIMIZE_TO_TRAY = L"minimize to tray";
 const wchar_t* KEY_CLOSE_TO_TRAY = L"close to tray";
 
+const wchar_t* REGKEY_RUN = (
+  L"Software\\Microsoft\\Windows\\CurrentVersion\\Run");
+
 
 Config::Config() : dirty_(false) {}
 
@@ -102,7 +105,7 @@ std::wstring Config::GetNetworkInterface()
   catch (const pt::ptree_error& /* e */) {
     PutNetworkInterface(value.c_str());
   }
-  
+
   return value;
 }
 
@@ -161,14 +164,25 @@ void Config::PutStartMinimized(bool value, bool save)
 }
 
 
-bool Config::GetStartWithWindows()
+bool Config::GetStartWithWindows(const wchar_t* appName)
 {
-  return false;
+  CRegKey key;
+  key.Open(HKEY_CURRENT_USER, REGKEY_RUN);
+  return !GetRegPathString(key, appName).empty();
 }
 
 
-void Config::PutStartWithWindows(bool value)
+void Config::PutStartWithWindows(const wchar_t* appName, const wchar_t* appPath)
 {
+  CRegKey key;
+  key.Open(HKEY_CURRENT_USER, REGKEY_RUN);
+
+  if (!appPath) {
+    key.DeleteValue(appName);
+  }
+  else {
+    key.SetStringValue(appName, appPath);
+  }
 }
 
 
@@ -215,4 +229,30 @@ void Config::PutCloseToTray(bool value, bool save)
   root_.put(KEY_CLOSE_TO_TRAY, value);
   dirty_ = true;
   if (save) { Save(); }
+}
+
+
+std::wstring Config::GetRegPathString(CRegKey& key, const wchar_t* queryValue)
+{
+  DWORD bufferSize = MAX_PATH + 1;
+  std::vector<wchar_t> buffer(bufferSize);
+  DWORD nChars = bufferSize;
+
+  LONG result = key.QueryStringValue(queryValue, &buffer[0], &nChars);
+
+  while (result == ERROR_MORE_DATA) {
+    if (bufferSize > 0x7fff) {
+      break;
+    }
+    bufferSize *= 2;
+    buffer.resize(bufferSize);
+    nChars = bufferSize;
+    result = key.QueryStringValue(queryValue, &buffer[0], &nChars);
+  }
+
+  if (result != ERROR_SUCCESS) {
+    return L"";
+  }
+
+  return &buffer[0];
 }
