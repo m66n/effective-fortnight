@@ -123,6 +123,23 @@ bool util::LoadStringResource(HINSTANCE hInstance, UINT uID,
 }
 
 
+bool IsVirtual(const BYTE* buffer, DWORD length)
+{
+  if (length != 6) {
+    return false;
+  }
+
+  /* VirtualBox v5 MAC begins with 0A-00-27 */
+  if (buffer[0] == 0x0a &&
+    buffer[1] == 0x00 &&
+    buffer[2] == 0x27) {
+    return true;
+  }
+
+  return false;
+}
+
+
 bool util::GetAddresses(Addresses& value)
 {
   value.clear();
@@ -147,7 +164,8 @@ bool util::GetAddresses(Addresses& value)
 
   while (curr) {
     bool valid = (curr->OperStatus == IfOperStatusUp) &&
-      (curr->IfType & IF_TYPE_ETHERNET_CSMACD);
+      (curr->IfType & IF_TYPE_ETHERNET_CSMACD) && 
+      !IsVirtual(curr->PhysicalAddress, curr->PhysicalAddressLength);
     if (valid) {
       PIP_ADAPTER_UNICAST_ADDRESS unicast = curr->FirstUnicastAddress;
       while (unicast) {
@@ -181,13 +199,13 @@ std::wstring util::GetConfigPath(const wchar_t* appName, const wchar_t* fileName
     configPath /= appName;
     if (!fs::exists(configPath)) {
       if (!fs::create_directory(configPath)) {
-        goto exit;
+        goto error;
       }
     }
     configPath /= fileName;
     return configPath.c_str();
   }
 
-exit:
+error:
   return L"";
 }
