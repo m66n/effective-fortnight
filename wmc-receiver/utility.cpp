@@ -123,20 +123,32 @@ bool util::LoadStringResource(HINSTANCE hInstance, UINT uID,
 }
 
 
+bool StartsWith(const BYTE* buffer, const BYTE* search, DWORD searchLength)
+{
+  DWORD index = 0;
+
+  while (index < searchLength) {
+    if (buffer[index] != search[index]) {
+      return false;
+    }
+    ++index;
+  }
+
+  return true;
+}
+
+
 bool IsVirtual(const BYTE* buffer, DWORD length)
 {
   if (length != 6) {
     return false;
   }
 
-  /* VirtualBox v5 MAC begins with 0A-00-27 */
-  if (buffer[0] == 0x0a &&
-    buffer[1] == 0x00 &&
-    buffer[2] == 0x27) {
-    return true;
-  }
+  /* VirtualBox v5 MAC starts with 0A-00-27 */
+  const BYTE VIRTUALBOX_V5[] = { 0x0a, 0x00, 0x27 };
+  bool retVal = StartsWith(buffer, VIRTUALBOX_V5, 3);
 
-  return false;
+  return retVal;
 }
 
 
