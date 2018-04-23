@@ -30,13 +30,17 @@ SOFTWARE.
 
 namespace util
 {
-  struct Address
+  struct IPv4
   {
     unsigned char a;
     unsigned char b;
     unsigned char c;
     unsigned char d;
+  };
 
+  struct Address
+  {
+    IPv4 ipv4;
     std::wstring description;
 
     std::wstring ToStr() const;

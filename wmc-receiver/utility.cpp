@@ -95,13 +95,13 @@ std::wstring util::Address::ToStr() const
 
   ss << description;
   ss << L" (";
-  ss << static_cast<int>(a);
+  ss << static_cast<int>(ipv4.a);
   ss << L".";
-  ss << static_cast<int>(b);
+  ss << static_cast<int>(ipv4.b);
   ss << L".";
-  ss << static_cast<int>(c);
+  ss << static_cast<int>(ipv4.c);
   ss << L".";
-  ss << static_cast<int>(d);
+  ss << static_cast<int>(ipv4.d);
   ss << L")";
 
   return ss.str();
@@ -185,10 +185,10 @@ bool util::GetAddresses(Addresses& value)
         if (sockaddr->sa_family == AF_INET) {
           PSOCKADDR_IN endpoint = reinterpret_cast<PSOCKADDR_IN>(sockaddr);
           Address endpointAddress;
-          endpointAddress.a = endpoint->sin_addr.S_un.S_un_b.s_b1;
-          endpointAddress.b = endpoint->sin_addr.S_un.S_un_b.s_b2;
-          endpointAddress.c = endpoint->sin_addr.S_un.S_un_b.s_b3;
-          endpointAddress.d = endpoint->sin_addr.S_un.S_un_b.s_b4;
+          endpointAddress.ipv4.a = endpoint->sin_addr.S_un.S_un_b.s_b1;
+          endpointAddress.ipv4.b = endpoint->sin_addr.S_un.S_un_b.s_b2;
+          endpointAddress.ipv4.c = endpoint->sin_addr.S_un.S_un_b.s_b3;
+          endpointAddress.ipv4.d = endpoint->sin_addr.S_un.S_un_b.s_b4;
           endpointAddress.description = curr->Description;
           value.push_back(endpointAddress);
         }
