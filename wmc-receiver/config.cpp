@@ -39,6 +39,15 @@ const wchar_t* KEY_START_MINIMIZED = L"start minimized";
 const wchar_t* KEY_MINIMIZE_TO_TRAY = L"minimize to tray";
 const wchar_t* KEY_CLOSE_TO_TRAY = L"close to tray";
 
+const wchar_t* KEY_MULTICAST_TX = L"multicast transmit address";
+const wchar_t* KEY_MULTICAST_TX_PORT = L"multicast transmit port";
+const wchar_t* KEY_MULTICAST_RX = L"multicast receive address";
+const wchar_t* KEY_MULTICAST_RX_PORT = L"multicast receive port";
+
+const wchar_t* DEFAULT_MULTICAST_ADDRESS = L"224.0.224.224";
+const int DEFAULT_MULTICAST_TX_PORT = 22224;
+const int DEFAULT_MULTICAST_RX_PORT = 22225;
+
 const wchar_t* REGKEY_RUN = (
   L"Software\\Microsoft\\Windows\\CurrentVersion\\Run");
 
@@ -172,7 +181,8 @@ bool Config::GetStartWithWindows(const wchar_t* appName)
 }
 
 
-void Config::PutStartWithWindows(const wchar_t* appName, const wchar_t* appPath)
+void Config::PutStartWithWindows(const wchar_t* appName,
+  const wchar_t* appPath)
 {
   CRegKey key;
   key.Open(HKEY_CURRENT_USER, REGKEY_RUN);
@@ -255,4 +265,96 @@ std::wstring Config::GetRegPathString(CRegKey& key, const wchar_t* queryValue)
   }
 
   return &buffer[0];
+}
+
+
+std::wstring Config::GetMulticastTransmitAddress()
+{
+  std::wstring value = DEFAULT_MULTICAST_ADDRESS;
+
+  try {
+    value = root_.get<std::wstring>(KEY_MULTICAST_TX);
+  }
+  catch (const pt::ptree_error& /* e */) {
+    PutMulticastTransmitAddress(value.c_str());
+  }
+
+  return value;
+}
+
+
+void Config::PutMulticastTransmitAddress(const wchar_t* value, bool save)
+{
+  root_.put(KEY_MULTICAST_TX, value);
+  dirty_ = true;
+  if (save) { Save(); }
+}
+
+
+int Config::GetMulticastTransmitPort()
+{
+  int value = 29092;
+
+  try {
+    value = root_.get<int>(KEY_MULTICAST_TX_PORT);
+  }
+  catch (const pt::ptree_error& /* e */) {
+    PutPort(value);
+  }
+
+  return value;
+}
+
+
+void Config::PutMulticastTransmitPort(int value, bool save)
+{
+  root_.put(KEY_MULTICAST_TX_PORT, value);
+  dirty_ = true;
+  if (save) { Save(); }
+}
+
+
+std::wstring Config::GetMulticastReceiveAddress()
+{
+  std::wstring value = DEFAULT_MULTICAST_ADDRESS;
+
+  try {
+    value = root_.get<std::wstring>(KEY_MULTICAST_RX);
+  }
+  catch (const pt::ptree_error& /* e */) {
+    PutMulticastTransmitAddress(value.c_str());
+  }
+
+  return value;
+}
+
+
+void Config::PutMulticastReceiveAddress(const wchar_t* value, bool save)
+{
+  root_.put(KEY_MULTICAST_RX, value);
+  dirty_ = true;
+  if (save) { Save(); }
+}
+
+
+int Config::GetMulticastReceivePort()
+{
+  int value = 29092;
+
+  try {
+    value = root_.get<int>(KEY_MULTICAST_RX_PORT);
+  }
+  catch (const pt::ptree_error& /* e */) {
+    PutPort(value);
+  }
+
+  return value;
+}
+
+
+void Config::PutMulticastReceivePort(int value, bool save)
+{
+  root_.put(KEY_MULTICAST_RX_PORT, value);
+  dirty_ = true;
+  if (save) { Save(); }
 }

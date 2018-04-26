@@ -52,7 +52,8 @@ public:
 
   bool GetStartWithWindows(const wchar_t* appName);
   // pass null appPath to clear setting
-  void PutStartWithWindows(const wchar_t* appName, const wchar_t* appPath);
+  void PutStartWithWindows(const wchar_t* appName,
+    const wchar_t* appPath = nullptr);
 
   bool GetMinimizeToTray();
   void PutMinimizeToTray(bool value, bool save = false);
@@ -60,11 +61,24 @@ public:
   bool GetCloseToTray();
   void PutCloseToTray(bool value, bool save = false);
 
+  std::wstring GetMulticastTransmitAddress();
+  void PutMulticastTransmitAddress(const wchar_t* value, bool save = false);
+
+  int GetMulticastTransmitPort();
+  void PutMulticastTransmitPort(int value, bool save = false);
+
+  std::wstring GetMulticastReceiveAddress();
+  void PutMulticastReceiveAddress(const wchar_t* value, bool save = false);
+
+  int GetMulticastReceivePort();
+  void PutMulticastReceivePort(int value, bool save = false);
+
 private:
   bool dirty_;
   std::wstring path_;
   pt::wptree root_;
 
-  static std::wstring GetRegPathString(CRegKey& key, const wchar_t* queryValue);
+  static std::wstring GetRegPathString(CRegKey& key,
+    const wchar_t* queryValue);
 };
 
