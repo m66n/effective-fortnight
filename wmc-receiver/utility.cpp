@@ -115,7 +115,7 @@ bool util::LoadStringResource(HINSTANCE hInstance, UINT uID,
   LPWSTR buffer;
   int numChars = LoadStringW(hInstance, uID, (LPWSTR)&buffer, 0);
   if (numChars) {
-    // if successful, buffer points to a not necessarily null-terminated string
+    // buffer points to a not necessarily null-terminated string
     value.assign(buffer, numChars);
     return true;
   }
@@ -176,7 +176,7 @@ bool util::GetAddresses(Addresses& value)
 
   while (curr) {
     bool valid = (curr->OperStatus == IfOperStatusUp) &&
-      (curr->IfType & IF_TYPE_ETHERNET_CSMACD) && 
+      (curr->IfType & IF_TYPE_ETHERNET_CSMACD) &&
       !IsVirtual(curr->PhysicalAddress, curr->PhysicalAddressLength);
     if (valid) {
       PIP_ADAPTER_UNICAST_ADDRESS unicast = curr->FirstUnicastAddress;
@@ -202,11 +202,15 @@ bool util::GetAddresses(Addresses& value)
 }
 
 
-std::wstring util::GetConfigPath(const wchar_t* appName, const wchar_t* fileName)
+std::wstring util::GetConfigPath(const wchar_t* appName,
+  const wchar_t* fileName)
 {
   SafeCoTaskMemPtr<PWSTR> folderPath;
 
-  if (SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &folderPath) == S_OK) {
+  HRESULT hr = SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL,
+    &folderPath);
+
+  if (SUCCEEDED(hr)) {
     fs::wpath configPath(folderPath);
     configPath /= appName;
     if (!fs::exists(configPath)) {
